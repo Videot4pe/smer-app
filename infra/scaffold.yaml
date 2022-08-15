@@ -1,0 +1,15 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+deploy:
+  kubectl:
+    manifests:
+      - ./infra/k8s/*
+      - ./infra/k8s-local/*
+build:
+  local:
+    push: false
+  artifacts:
+    - image: videot4pe/smers-api
+      context: backend/
+    - image: videot4pe/smers-client
+      context: backend/audio-service

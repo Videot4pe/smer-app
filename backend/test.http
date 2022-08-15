@@ -1,0 +1,40 @@
+POST http://localhost:5005/api/auth/signup
+Content-Type: application/json
+
+{
+  "email": "uselessflower@gmail.com",
+  "password": "test"
+}
+
+###
+POST http://localhost:5005/api/auth/signin
+Content-Type: application/json
+
+{
+  "email": "uselessflower@gmail.com",
+  "password": "testpwd2"
+}
+
+###
+POST http://localhost:5005/api/users
+Content-Type: application/json
+
+{
+  "email": "test@test.test",
+  "username": "test222",
+  "name": "test name",
+  "surname": "test surname",
+  "patronymic": "test patronymic",
+  "password": "testpwd2"
+}
+
+###
+GET http://localhost:5005/api/user/1
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC50ZXN0IiwiaWQiOjR9.-lv3VPLLUf069Jr9ef2BI7lvQUhocfW2gu5T0rHuKRGnBp3lpsKWzPkZ6W_GuZWP_RbqYIuemz8ZiDr5oi2D6w
+
+
+###
+GET http://localhost:5005/api/users
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC50ZXN0IiwiaWQiOjR9.-lv3VPLLUf069Jr9ef2BI7lvQUhocfW2gu5T0rHuKRGnBp3lpsKWzPkZ6W_GuZWP_RbqYIuemz8ZiDr5oi2D6w
