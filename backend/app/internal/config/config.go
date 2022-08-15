@@ -14,7 +14,7 @@ type Config struct {
 		BindIP     string `env:"BIND_IP" env-default:"0.0.0.0"`
 		Port       string `env:"PORT" env-default:"5005"`
 		SocketFile string `env:"SOCKET_FILE" env-default:"app.sock"`
-		ServerIP   string `env:"SERVER_IP" env-default:"http://localhost"`
+		ServerIP   string `env:"SERVER_IP" env-default:"http://videot4pe.dev"`
 	}
 	AppConfig struct {
 		LogLevel  string `env:"LOG_LEVEL" env-default:"trace"`
@@ -26,7 +26,7 @@ type Config struct {
 	}
 	PostgreSQL struct {
 		Username string `env:"PGUSER" env-default:"postgres"`
-		Host     string `env:"PGHOST" env-default:"localhost"`
+		Host     string `env:"PGHOST" env-default:"postgres"`
 		Password string `env:"PGPASSWORD" env-default:"123"`
 		Database string `env:"PGDATABASE" env-default:"smer"`
 		Port     string `env:"PGPORT" env-default:"5432"`
