@@ -56,10 +56,7 @@ func (s *Storage) All(userId uint16, filters []*db.Filter, pagination *db.Pagina
 		s.logger.Trace(filter)
 		query = filter.UseSelectBuilder(query)
 	}
-	for _, sort := range sorts {
-		s.logger.Trace(sort)
-		query = sort.UseSelectBuilder(query)
-	}
+
 	if pagination != nil {
 		query = pagination.UseSelectBuilder(query)
 	}
