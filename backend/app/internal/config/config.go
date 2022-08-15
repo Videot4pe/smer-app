@@ -26,7 +26,7 @@ type Config struct {
 	}
 	PostgreSQL struct {
 		Username string `env:"PGUSER" env-default:"postgres"`
-		Host     string `env:"PGHOST" env-default:"postgres"`
+		Host     string `env:"PGHOST" env-default:"localhost"`
 		Password string `env:"PGPASSWORD" env-default:"123"`
 		Database string `env:"PGDATABASE" env-default:"smer"`
 		Port     string `env:"PGPORT" env-default:"5432"`

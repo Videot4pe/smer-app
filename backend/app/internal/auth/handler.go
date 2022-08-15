@@ -196,7 +196,7 @@ func (h *Handler) Activate(w http.ResponseWriter, r *http.Request, ps httprouter
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error")
 		return
 	}
-	http.Redirect(w, r, "http://localhost:3000/smers", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, "https://videot4pe.dev/smers", http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
