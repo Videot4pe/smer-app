@@ -1,8 +1,10 @@
 package config
 
 import (
+	"backend/pkg/utils"
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
+	"path/filepath"
 	"sync"
 )
 
@@ -14,7 +16,7 @@ type Config struct {
 		BindIP     string `env:"BIND_IP" env-default:"0.0.0.0"`
 		Port       string `env:"PORT" env-default:"5005"`
 		SocketFile string `env:"SOCKET_FILE" env-default:"app.sock"`
-		ServerIP   string `env:"SERVER_IP" env-default:"http://videot4pe.dev"`
+		ServerIP   string `env:"SERVER_IP" env-default:"https://videot4pe.dev"`
 	}
 	AppConfig struct {
 		LogLevel  string `env:"LOG_LEVEL" env-default:"trace"`
@@ -59,8 +61,9 @@ func GetConfig() *Config {
 	once.Do(func() {
 		instance = &Config{}
 
-		// TODO fix path
-		if err := cleanenv.ReadConfig("../../.env", instance); err != nil {
+		path := filepath.Join(utils.RootDir(), ".env")
+
+		if err := cleanenv.ReadConfig(path, instance); err != nil {
 			var helpText string
 			help, _ := cleanenv.GetDescription(instance, &helpText)
 			log.Print(help)

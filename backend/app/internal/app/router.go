@@ -44,7 +44,7 @@ func NewRouter(ctx context.Context, config *config.Config, logger *logging.Logge
 	userHandler := user.NewUserHandler(ctx, userStorage, logger, filesStorage)
 	userHandler.Register(router)
 
-	authHandler := auth.NewAuthHandler(ctx, userStorage, logger)
+	authHandler := auth.NewAuthHandler(ctx, userStorage, logger, config)
 	authHandler.Register(router)
 
 	oauthProvider := oauth.GetOAuthProvider(logger, config, userStorage)

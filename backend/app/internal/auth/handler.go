@@ -25,6 +25,7 @@ type Handler struct {
 	logger  *logging.Logger
 	storage *user.Storage
 	ctx     context.Context
+	cfg     *config.Config
 }
 
 type AuthenticatePayload struct {
@@ -41,11 +42,12 @@ const (
 	passwordResetWebhookURL = "/api/auth/password-reset/:hash"
 )
 
-func NewAuthHandler(ctx context.Context, storage *user.Storage, logger *logging.Logger) *Handler {
+func NewAuthHandler(ctx context.Context, storage *user.Storage, logger *logging.Logger, cfg *config.Config) *Handler {
 	return &Handler{
 		logger:  logger,
 		storage: storage,
 		ctx:     ctx,
+		cfg:     cfg,
 	}
 }
 
@@ -196,7 +198,7 @@ func (h *Handler) Activate(w http.ResponseWriter, r *http.Request, ps httprouter
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error")
 		return
 	}
-	http.Redirect(w, r, "https://videot4pe.dev/smers", http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%v/smers)", h.cfg.Listen.ServerIP), http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
