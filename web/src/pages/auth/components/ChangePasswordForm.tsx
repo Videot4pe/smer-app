@@ -22,9 +22,6 @@ const ChangePasswordForm = (props: HTMLChakraProps<"form"> & { hash: string }) =
   const [password, setPassword] = useState<string>("");
   const errorHandler = useErrorHandler();
   const navigate = useNavigate();
-  const location = useLocation();
-  // @ts-ignore
-  const from = location.state?.from || "/singin";
 
   return (
     <chakra.form
@@ -32,9 +29,9 @@ const ChangePasswordForm = (props: HTMLChakraProps<"form"> & { hash: string }) =
         e.preventDefault();
         AuthApi.changePassword(props.hash, password)
           .then(() => {
-            navigate(from, { replace: true });
+            navigate('/signin', { replace: true });
           })  
-          .catch(errorHandler);
+          .catch((err) => errorHandler);
       }}
       {...props}
     >
