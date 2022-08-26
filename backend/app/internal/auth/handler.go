@@ -271,16 +271,5 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request, ps http
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Password reset error")
 		return
 	}
-	// http.Redirect(w, r, fmt.Sprintf("%v:%v/signin", h.cfg.Frontend.ServerIP, h.cfg.Frontend.Port), http.StatusSeeOther)
-	// http.Redirect(w, r, fmt.Sprintf("%v:%v/signin", h.cfg.Frontend.ServerIP, h.cfg.Frontend.Port), http.StatusMovedPermanently)
-	// http.Redirect(w, r, fmt.Sprintf("%v:%v/", h.cfg.Frontend.ServerIP, h.cfg.Frontend.Port), http.StatusFound)
-
-	w.Header().Set("Location", fmt.Sprintf("%v:%v/signin", h.cfg.Frontend.ServerIP, h.cfg.Frontend.Port))
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	// r.Response.StatusCode(http.StatusFound)
-	w.WriteHeader(http.StatusSeeOther)
-	// w.WriteHeader(http.StatusOK)
-
-	// utils.WriteResponse(w, http.StatusFound, 123)
-	// utils.WriteResponse(w, http.StatusOK, 123)
+	w.WriteHeader(http.StatusOK)
 }
