@@ -206,7 +206,7 @@ func (h *Handler) Activate(w http.ResponseWriter, r *http.Request, ps httprouter
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error")
 		return
 	}
-	http.Redirect(w, r, fmt.Sprintf("%v/smers", h.cfg.Listen.ServerIP), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%v:%v/smers", h.cfg.Frontend.ServerIP, h.cfg.Frontend.Port), http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
