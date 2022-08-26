@@ -271,5 +271,5 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request, ps http
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Password reset error")
 		return
 	}
-	http.Redirect(w, r, fmt.Sprintf("%v/signin", h.cfg.Listen.ServerIP), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%v:%v/signin", h.cfg.Frontend.ServerIP, h.cfg.Frontend.Port), http.StatusFound)
 }
