@@ -42,7 +42,7 @@ export const getClient = (url: string) => {
               localStorage.setItem("refresh-token", payload.refreshToken);
             })
             .catch(() => {
-              window.location.href = "localhost:3000/signin";
+              window.location.href = "/signin";
             });
           return client(originalRequest);
         }
