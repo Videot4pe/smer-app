@@ -22,7 +22,7 @@ const ResetPasswordForm = (props: HTMLChakraProps<"form">) => {
     <chakra.form
       onSubmit={(e) => {
         e.preventDefault();
-        AuthApi.reset(user.email)
+        AuthApi.reset(email)
           .catch(errorHandler);
       }}
       {...props}
