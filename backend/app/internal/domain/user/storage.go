@@ -4,10 +4,12 @@ import (
 	"backend/pkg/client/postgresql"
 	"backend/pkg/logging"
 	"context"
+
 	"github.com/dchest/uniuri"
 	"golang.org/x/crypto/bcrypt"
 
 	db "backend/pkg/client/postgresql/model"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -312,10 +314,12 @@ func (s *Storage) GetByEmailAndGenerateHash(email string) (uint16, bool, string,
 	return user.Id, user.IsVerified, hash, nil
 }
 
-func (s *Storage) PasswordReset(id uint16) error {
+func (s *Storage) PasswordReset(hash string, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
-	query := s.queryBuilder.Delete("users").
-		Where(sq.Eq{"id": id})
+	query := s.queryBuilder.Update("users").
+		Set("password", hashedPassword).
+		Where(sq.Eq{"token_hash": hash})
 
 	sql, args, err := query.ToSql()
 	logger := s.queryLogger(sql, table, args)
@@ -332,6 +336,8 @@ func (s *Storage) PasswordReset(id uint16) error {
 		logger.Error(err)
 		return err
 	}
+
+	// TODO сбросить token_hash
 
 	return nil
 }

@@ -2,10 +2,11 @@ package config
 
 import (
 	"backend/pkg/utils"
-	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 	"path/filepath"
 	"sync"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -51,6 +52,10 @@ type Config struct {
 			Secret      string `env:"VK_OAUTH_SECRET"`
 			CallbackUrl string `env:"VK_OAUTH_CALLBACK_URL" env-default:"http://localhost:5005/api/oauth/vk/callback"`
 		}
+	}
+	Frontend struct {
+		ServerIP string `env:"FRONTEND_SERVER_IP" env-default:"https://videot4pe.dev"`
+		Port     string `env:"FRONTEND_PORT" env-default:"3000"`
 	}
 }
 
