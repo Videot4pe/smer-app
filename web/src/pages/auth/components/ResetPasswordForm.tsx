@@ -11,7 +11,6 @@ import {
 import { useState } from "react";
 
 import AuthApi from "../../../api/auth-api";
-import type { ShortUser } from "../../../models/user";
 import { useSuccessHandler } from "../../../utils/handle-success";
 import { useErrorHandler } from "../../../utils/handle-get-error";
 
