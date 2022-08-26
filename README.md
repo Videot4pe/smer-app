@@ -10,9 +10,13 @@
 - `yarn dev`
 
 ### Start backend dev (backend folder)
-- `go run ./app/cmd/server/main.go` — запуск,
-- `goose create add_some_column sql` — создание миграции,
-- `goose up` — Применить миграции
+* Installing packages (folder backend/app)
+- `go install backend/internal/app backend/internal/config backend/pkg/logging`
+
+* Running backend
+- `go run ./app/cmd/server/main.go` — run
+- `goose create add_some_column sql` — create migration
+- `goose up` — apply migrations
 
 #### Examples:
 `goose postgres "user=postgres dbname=stack sslmode=disable" up`

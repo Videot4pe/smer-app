@@ -68,7 +68,7 @@ const SigninForm = (props: HTMLChakraProps<"form">) => {
           }
         />
         <Center>
-          <Link href="lib/pages/auth/components/SigninForm#">
+          <Link href="/reset-password">
             Forgot password?
           </Link>
         </Center>
