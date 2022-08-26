@@ -16,6 +16,9 @@ export const getClient = (url: string) => {
 
   client.interceptors.request.use(
     (config) => {
+      console.log('REQUEST INTERCEPTOR (config)')
+      console.log(config)
+
       if (config.headers) {
         const token = localStorage.getItem("jwt-token");
         // eslint-disable-next-line no-param-reassign
@@ -24,13 +27,27 @@ export const getClient = (url: string) => {
 
       return config;
     },
-    (requestError) => Promise.reject(requestError)
+    (requestError) => {
+      console.log('REQUEST INTERCEPTOR (error)')
+      console.log(requestError)
+
+      return Promise.reject(requestError)
+    }
   );
 
   client.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      console.log('RESPONSE INTERCEPTOR (response)')
+      console.log(response)
+      
+      return response
+    },
     async (error) => {
+      console.log('RESPONSE INTERCEPTOR (error)')
+      console.log(error)
+
       const originalRequest = error.config;
+
       if (error.response.status === 403 && !originalRequest.retry) {
         localStorage.removeItem("jwt-token");
         originalRequest.retry = true;
@@ -46,6 +63,11 @@ export const getClient = (url: string) => {
             });
           return client(originalRequest);
         }
+      }
+      if (error.response.status >= 300 && error.response.status <= 308) {
+        console.log('responce (3xx):', error.response)
+
+        return error.response
       }
       return Promise.reject(error.response);
     }
