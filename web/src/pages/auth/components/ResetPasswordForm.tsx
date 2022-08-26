@@ -12,17 +12,20 @@ import { useState } from "react";
 
 import AuthApi from "../../../api/auth-api";
 import type { ShortUser } from "../../../models/user";
+import { useSuccessHandler } from "../../../utils/handle-success";
 import { useErrorHandler } from "../../../utils/handle-get-error";
 
 const ResetPasswordForm = (props: HTMLChakraProps<"form">) => {
   const [email, setEmail] = useState<string>('');
   const errorHandler = useErrorHandler();
+  const successHandler = useSuccessHandler('Link for changing password was sent');
 
   return (
     <chakra.form
       onSubmit={(e) => {
         e.preventDefault();
         AuthApi.reset(email)
+          .then(() => successHandler('Check your email address'))
           .catch(errorHandler);
       }}
       {...props}
