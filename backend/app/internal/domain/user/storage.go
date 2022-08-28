@@ -4,6 +4,7 @@ import (
 	"backend/pkg/client/postgresql"
 	"backend/pkg/logging"
 	"context"
+	"time"
 
 	"github.com/dchest/uniuri"
 	"golang.org/x/crypto/bcrypt"
@@ -293,7 +294,10 @@ func (s *Storage) GetByEmailAndGenerateHash(email string) (uint16, bool, string,
 		return 0, false, hash, err
 	}
 
-	setTokenQuery := s.queryBuilder.Update(scheme+"."+table).Set("token_hash", hash).Where(sq.Eq{"id": user.Id})
+	setTokenQuery := s.queryBuilder.Update(scheme+"."+table).
+		Set("token_hash", hash).
+		Set("hash_expire", time.Now().Add(time.Minute*time.Duration(30))).
+		Where(sq.Eq{"id": user.Id})
 
 	sql, args, err = setTokenQuery.ToSql()
 	logger = s.queryLogger(sql, table, args)

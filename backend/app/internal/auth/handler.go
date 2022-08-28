@@ -93,11 +93,17 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 
-	jwtClaims := auth.NewJwtClaims(credentials.Email, userId)
-	token, err := jwtClaims.EncodeJwt()
+	jwtClaims := &auth.AuthJwt{
+		Email: credentials.Email,
+		Id:    userId,
+	}
+	token, err := jwtClaims.Encode(10)
 
-	refreshJwtClaims := auth.NewJwtClaims(token, userId)
-	refreshToken, err := refreshJwtClaims.EncodeJwt()
+	refreshJwtClaims := &auth.AuthJwt{
+		Email: token,
+		Id:    userId,
+	}
+	refreshToken, err := refreshJwtClaims.Encode(10)
 
 	err = h.storage.UpdateRefreshToken(refreshToken, userId)
 
@@ -139,11 +145,17 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		return
 	}
 
-	jwtClaims := auth.NewJwtClaims(userInfo.Email, userId)
-	payload.Token, err = jwtClaims.EncodeJwt()
+	jwtClaims := &auth.AuthJwt{
+		Email: userInfo.Email,
+		Id:    userId,
+	}
+	payload.Token, err = jwtClaims.Encode(10)
 
-	refreshJwtClaims := auth.NewJwtClaims(payload.Token, userId)
-	refreshToken, err := refreshJwtClaims.EncodeJwt()
+	refreshJwtClaims := &auth.AuthJwt{
+		Email: payload.Token,
+		Id:    userId,
+	}
+	refreshToken, err := refreshJwtClaims.Encode(10)
 
 	err = h.storage.UpdateRefreshToken(refreshToken, userId)
 
