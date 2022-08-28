@@ -6,8 +6,9 @@ import (
 	"backend/pkg/auth"
 	"backend/pkg/logging"
 	"backend/pkg/utils"
-	"github.com/markbates/goth"
 	"net/http"
+
+	"github.com/markbates/goth"
 )
 
 type OAuthProvider struct {
@@ -39,8 +40,11 @@ func (oap *OAuthProvider) OAuth(authUser goth.User, w http.ResponseWriter, r *ht
 		return
 	}
 
-	jwtClaims := auth.NewJwtClaims(newUser.Email, userId)
-	token, err := jwtClaims.EncodeJwt()
+	jwtClaims := &auth.AuthJwt{
+		Email: newUser.Email,
+		Id:    userId,
+	}
+	token, err := jwtClaims.Encode(10)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return

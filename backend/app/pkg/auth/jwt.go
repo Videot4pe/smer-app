@@ -3,31 +3,43 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
-type JwtClaims struct {
+type BaseJwt struct {
 	jwt.StandardClaims
+}
+
+type AuthJwt struct {
+	BaseJwt
 	Email string `json:"email,omitempty"`
 	Id    uint16 `json:"id,omitempty"`
 }
 
-func NewJwtClaims(email string, id uint16) *JwtClaims {
+type HashType int64
 
-	expireToken := time.Now().Add(time.Minute * 10).Unix()
+const (
+	ACTIVATE HashType = iota
+	PASSWORD_RESET
+)
 
-	return &JwtClaims{
-		Email: email,
-		Id:    id,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expireToken,
-			Issuer:    "smer-auth",
-		},
-	}
+type LinkJwt struct {
+	BaseJwt
+	id   uint64
+	Type HashType
 }
 
-func (claims *JwtClaims) EncodeJwt() (string, error) {
+type JwtInterface[T BaseJwt] interface {
+	Encode(expireMins int) (string, error)
+	Decode(jwtString string) (*jwt.Token, *T, error)
+}
+
+func (claims *BaseJwt) Encode(expireMins int) (string, error) {
+	claims.StandardClaims.ExpiresAt = time.Now().Add(time.Minute * time.Duration(expireMins)).Unix()
+	claims.StandardClaims.Issuer = "smer-auth"
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 	tokenString, err := token.SignedString([]byte("secret"))
 	if err != nil {
@@ -36,8 +48,8 @@ func (claims *JwtClaims) EncodeJwt() (string, error) {
 	return tokenString, nil
 }
 
-func DecodeJwt(s string) (*jwt.Token, *JwtClaims, error) {
-	token, err := jwt.ParseWithClaims(s, &JwtClaims{}, func(token *jwt.Token) (interface{}, error) {
+func Decode[T *BaseJwt](s string) (*jwt.Token, T, error) {
+	token, err := jwt.ParseWithClaims(s, &BaseJwt{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("decodeJwt: unexpected signing method: %v", token.Header["alg"])
 		}
@@ -49,7 +61,7 @@ func DecodeJwt(s string) (*jwt.Token, *JwtClaims, error) {
 		}
 		return nil, nil, fmt.Errorf("decodeJwt: %v", err)
 	}
-	claims, ok := token.Claims.(*JwtClaims)
+	claims, ok := token.Claims.(*BaseJwt)
 	if !ok {
 		return nil, nil, errors.New("decodeJwt: invalid claims")
 
