@@ -24,7 +24,7 @@ export const routes: Array<PathRouteProps> = [
     element: <ResetPassword />,
   },
   {
-    path: "/change-password/:hash",
+    path: "/change-password",
     element: <ChangePassword />,
   },
 ];

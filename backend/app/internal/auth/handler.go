@@ -35,18 +35,16 @@ type AuthenticatePayload struct {
 }
 
 type ChangePasswordPayload struct {
-	Hash     string `json:"hash"`
 	Password string `json:"password"`
 }
 
 const (
-	signinURL               = "/api/auth/signin"
-	signupURL               = "/api/auth/signup"
-	refreshURL              = "/api/auth/refresh"
-	activateURL             = "/api/auth/activate/:hash"
-	passwordResetURL        = "/api/auth/password-reset"
-	passwordResetWebhookURL = "/api/auth/password-reset/:hash"
-	changePasswordURL       = "/api/auth/change-password"
+	signinURL         = "/api/auth/signin"
+	signupURL         = "/api/auth/signup"
+	refreshURL        = "/api/auth/refresh"
+	activateURL       = "/api/auth/activate/:hash"
+	passwordResetURL  = "/api/auth/password-reset"
+	changePasswordURL = "/api/auth/change-password"
 )
 
 func NewAuthHandler(ctx context.Context, storage *user.Storage, logger *logging.Logger, cfg *config.Config) *Handler {
@@ -64,7 +62,6 @@ func (h *Handler) Register(router *httprouter.Router) {
 	router.POST(refreshURL, h.Refresh)
 	router.GET(activateURL, h.Activate)
 	router.POST(passwordResetURL, h.PasswordReset)
-	router.GET(passwordResetWebhookURL, h.PasswordResetWebhook)
 	router.POST(changePasswordURL, h.ChangePassword)
 }
 
@@ -93,17 +90,24 @@ func (h *Handler) Signin(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return
 	}
 
-	jwtClaims := &auth.AuthJwt{
-		Email: credentials.Email,
-		Id:    userId,
+	jwtClaims := auth.AuthJwt{
+		Data: auth.AuthJwtData{
+			Id:    userId,
+			Email: credentials.Email,
+		},
 	}
-	token, err := jwtClaims.Encode(10)
 
-	refreshJwtClaims := &auth.AuthJwt{
-		Email: token,
-		Id:    userId,
+	token, err := auth.Encode(&jwtClaims, 10)
+
+	// TODO email -> token ???
+	refreshJwtClaims := auth.AuthJwt{
+		Data: auth.AuthJwtData{
+			Id:    userId,
+			Email: token,
+		},
 	}
-	refreshToken, err := refreshJwtClaims.Encode(10)
+
+	refreshToken, err := auth.Encode(&refreshJwtClaims, 10)
 
 	err = h.storage.UpdateRefreshToken(refreshToken, userId)
 
@@ -145,17 +149,21 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.P
 		return
 	}
 
-	jwtClaims := &auth.AuthJwt{
-		Email: userInfo.Email,
-		Id:    userId,
+	jwtClaims := auth.AuthJwt{
+		Data: auth.AuthJwtData{
+			Id:    userId,
+			Email: userInfo.Email,
+		},
 	}
-	payload.Token, err = jwtClaims.Encode(10)
+	payload.Token, err = auth.Encode(&jwtClaims, 10)
 
-	refreshJwtClaims := &auth.AuthJwt{
-		Email: payload.Token,
-		Id:    userId,
+	refreshJwtClaims := auth.AuthJwt{
+		Data: auth.AuthJwtData{
+			Id:    userId,
+			Email: payload.Token,
+		},
 	}
-	refreshToken, err := refreshJwtClaims.Encode(10)
+	refreshToken, err := auth.Encode(&refreshJwtClaims, 10)
 
 	err = h.storage.UpdateRefreshToken(refreshToken, userId)
 
@@ -185,7 +193,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 	}
 
 	// TODO Transaction (create & send mail)
-	userId, hash, err := h.storage.Create(newUser, false)
+	userId, token, err := h.storage.Create(newUser, false)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return
@@ -194,7 +202,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 	cfg := config.GetConfig()
 
 	authMailerClient := GetMailerAuth(cfg, h.logger)
-	activationLink := fmt.Sprintf("%v:%v/api/auth/activate/%v", cfg.Listen.ServerIP, cfg.Listen.Port, hash)
+	activationLink := fmt.Sprintf("%v:%v/api/auth/activate/%v", cfg.Listen.ServerIP, cfg.Listen.Port, token)
 
 	emailConfirmationParams := EmailConfirmationParams{
 		Name:  newUser.Name,
@@ -233,8 +241,7 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 
 	email = string(body)
 
-	// Transaction (create & send mail)
-	userId, isVerified, hash, err := h.storage.GetByEmailAndGenerateHash(email)
+	userId, isVerified, err := h.storage.GetByEmail(email)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return
@@ -244,6 +251,8 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 		return
 	}
 
+	token, err := h.storage.PasswordReset(userId)
+
 	cfg := config.GetConfig()
 	sender := mailer.SenderConfig{
 		Host:     cfg.Mailer.Host,
@@ -252,7 +261,7 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 		Password: cfg.Mailer.Password,
 	}
 	mailClient := mailer.GetMailer(sender, h.logger)
-	activationLink := fmt.Sprintf("%v:%v/change-password/%v", cfg.Frontend.ServerIP, cfg.Frontend.Port, hash)
+	activationLink := fmt.Sprintf("%v:%v/change-password?token=%v", cfg.Frontend.ServerIP, cfg.Frontend.Port, token)
 
 	mail := mailer.Mail{
 		Username: email,
@@ -269,18 +278,20 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 	utils.WriteResponse(w, http.StatusOK, userId)
 }
 
-func (h *Handler) PasswordResetWebhook(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	// TODO Implement
-}
-
 func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	queryValues := r.URL.Query()
+	token := queryValues.Get("token")
 	var payload ChangePasswordPayload
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
-
-	err = h.storage.PasswordReset(payload.Hash, payload.Password)
 	if err != nil {
-		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Password reset error")
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Password change error: "+err.Error())
+		return
+	}
+
+	err = h.storage.ChangePassword(token, payload.Password)
+	if err != nil {
+		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Password change error: "+err.Error())
 		return
 	}
 	w.WriteHeader(http.StatusOK)
