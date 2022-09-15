@@ -14,6 +14,6 @@ export default {
   signup: (user: ShortUser) => client.post<number>("/signup", user),
   refresh: (token: string) => client.post<JwtPayload>("/refresh", { token }),
   reset: (email: string) => client.post<number>("/password-reset", email),
-  changePassword: (hash: string, password: string) => client.post<void>("/change-password", { hash, password }),
+  changePassword: (token: string, password: string) => client.post<void>("/change-password", { password }, { params: { token } }),
   info: () => client.get<UserInfo>("/info"),
 };

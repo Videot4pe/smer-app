@@ -40,11 +40,14 @@ func (oap *OAuthProvider) OAuth(authUser goth.User, w http.ResponseWriter, r *ht
 		return
 	}
 
-	jwtClaims := &auth.AuthJwt{
-		Email: newUser.Email,
-		Id:    userId,
+	jwtClaims := auth.AuthJwt{
+		Data: auth.AuthJwtData{
+			Id:    userId,
+			Email: authUser.Email,
+		},
 	}
-	token, err := jwtClaims.Encode(10)
+
+	token, err := auth.Encode(&jwtClaims, 10)
 	if err != nil {
 		utils.WriteErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return

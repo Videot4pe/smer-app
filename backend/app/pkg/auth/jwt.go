@@ -3,40 +3,42 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-type BaseJwt struct {
-	jwt.StandardClaims
-}
+// type HashType int64
 
-type AuthJwt struct {
-	BaseJwt
+// const (
+// 	ACTIVATE HashType = iota
+// 	PASSWORD_RESET
+// )
+
+type AuthJwtData struct {
 	Email string `json:"email,omitempty"`
 	Id    uint16 `json:"id,omitempty"`
 }
 
-type HashType int64
-
-const (
-	ACTIVATE HashType = iota
-	PASSWORD_RESET
-)
-
-type LinkJwt struct {
-	BaseJwt
-	id   uint64
-	Type HashType
+type LinkJwtData struct {
+	Id uint16 `json:"id,omitempty"`
+	// Type HashType
 }
 
-type JwtInterface[T BaseJwt] interface {
-	Encode(expireMins int) (string, error)
-	Decode(jwtString string) (*jwt.Token, *T, error)
+type JwtData interface {
+	AuthJwtData | LinkJwtData
 }
 
-func (claims *BaseJwt) Encode(expireMins int) (string, error) {
+type Jwt[T any] struct {
+	jwt.StandardClaims
+	Data T
+}
+
+type AuthJwt = Jwt[AuthJwtData]
+type LinkJwt = Jwt[LinkJwtData]
+
+func Encode[T JwtData](claims *Jwt[T], expireMins int) (string, error) {
 	claims.StandardClaims.ExpiresAt = time.Now().Add(time.Minute * time.Duration(expireMins)).Unix()
 	claims.StandardClaims.Issuer = "smer-auth"
 
@@ -48,8 +50,8 @@ func (claims *BaseJwt) Encode(expireMins int) (string, error) {
 	return tokenString, nil
 }
 
-func Decode[T *BaseJwt](s string) (*jwt.Token, T, error) {
-	token, err := jwt.ParseWithClaims(s, &BaseJwt{}, func(token *jwt.Token) (interface{}, error) {
+func Decode[T JwtData](claims *Jwt[T], s string) (*jwt.Token, *Jwt[T], error) {
+	token, err := jwt.ParseWithClaims(s, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("decodeJwt: unexpected signing method: %v", token.Header["alg"])
 		}
@@ -57,14 +59,18 @@ func Decode[T *BaseJwt](s string) (*jwt.Token, T, error) {
 	})
 	if err != nil || !token.Valid {
 		if err == nil {
-			err = errors.New("invalid token")
+			err = ErrInvalidToken
 		}
+
+		if strings.Contains(err.Error(), "expired") {
+			return nil, nil, ErrExpiredToken
+		}
+
 		return nil, nil, fmt.Errorf("decodeJwt: %v", err)
 	}
-	claims, ok := token.Claims.(*BaseJwt)
+	claims, ok := token.Claims.(*Jwt[T])
 	if !ok {
 		return nil, nil, errors.New("decodeJwt: invalid claims")
-
 	}
 	return token, claims, nil
 }

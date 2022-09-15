@@ -8,17 +8,14 @@ import {
   Input,
   Stack,
 } from "@chakra-ui/react";
-import { useAtom } from "jotai";
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import AuthApi from "../../../api/auth-api";
-import type { ShortUser } from "../../../models/user";
-import { jwtToken, refreshJwtToken } from "../../../store";
 import { useErrorHandler } from "../../../utils/handle-get-error";
 import PasswordField from "./PasswordField";
 
-const ChangePasswordForm = (props: HTMLChakraProps<"form"> & { hash: string }) => {
+const ChangePasswordForm = (props: HTMLChakraProps<"form"> & { token: string }) => {
   const [password, setPassword] = useState<string>("");
   const errorHandler = useErrorHandler();
   const navigate = useNavigate();
@@ -27,11 +24,11 @@ const ChangePasswordForm = (props: HTMLChakraProps<"form"> & { hash: string }) =
     <chakra.form
       onSubmit={(e) => {
         e.preventDefault();
-        AuthApi.changePassword(props.hash, password)
+        AuthApi.changePassword(props.token, password)
           .then(() => {
             navigate('/signin', { replace: true });
           })  
-          .catch((err) => errorHandler);
+          .catch(errorHandler);
       }}
       {...props}
     >
