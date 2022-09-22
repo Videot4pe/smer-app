@@ -2,16 +2,31 @@ import {
     Box,
     Heading,
     Text,
+    useToast,
   } from "@chakra-ui/react";
   
   import Card from "./components/Card";
   import Logo from "./components/Logo";
   import ChangePasswordForm from "./components/ChangePasswordForm";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
   
   const ChangePassword = () => {
+    const toast = useToast();
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const token = searchParams.get("token") ?? ""
+    const token = searchParams.get("token")
+
+    if (!token) {
+      navigate('/signin', { replace: true });
+      toast({
+        title: 'Empty token',
+        description: 'Please, try to reset email again',
+        status: "error",
+        isClosable: true,
+      });
+
+      return
+    }
 
     return (<Box bg="pink.100" minH="100vh" py="12" px={{ base: "4", lg: "8" }}>
       <Box maxW="md" mx="auto">
@@ -30,4 +45,3 @@ import { useSearchParams } from "react-router-dom";
   )};
   
   export default ChangePassword;
-  
