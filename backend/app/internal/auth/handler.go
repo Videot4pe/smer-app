@@ -243,7 +243,8 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 	// TODO проверить email на валидность - пока что, лишь бы не пустая строка
 	emailTrimmed := strings.TrimSpace(string(body))
 	if len(emailTrimmed) == 0 {
-		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid email: '"+emailTrimmed+"'")
+		errorText := fmt.Sprintf("Invalid email: '%v'", emailTrimmed)
+		utils.WriteErrorResponse(w, http.StatusBadRequest, errorText)
 		return
 	}
 
