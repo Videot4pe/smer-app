@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -226,7 +227,7 @@ func (h *Handler) Activate(w http.ResponseWriter, r *http.Request, ps httprouter
 		utils.WriteErrorResponse(w, http.StatusInternalServerError, "Activation error")
 		return
 	}
-	http.Redirect(w, r, fmt.Sprintf("%v:%v/smers", h.cfg.Frontend.ServerIP, h.cfg.Frontend.Port), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("%v/smers", h.cfg.Frontend.ServerIP), http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -239,7 +240,12 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 		return
 	}
 
-	email = string(body)
+	// TODO проверить email на валидность - пока что, лишь бы не пустая строка
+	emailTrimmed := strings.TrimSpace(string(body))
+	if len(emailTrimmed) == 0 {
+		utils.WriteErrorResponse(w, http.StatusBadRequest, "Invalid email: '"+emailTrimmed+"'")
+		return
+	}
 
 	userId, isVerified, err := h.storage.GetByEmail(email)
 	if err != nil {

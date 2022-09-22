@@ -11,7 +11,7 @@ import { useSearchParams } from "react-router-dom";
   
   const ChangePassword = () => {
     const [searchParams] = useSearchParams();
-    const token = searchParams.get("token")
+    const token = searchParams.get("token") ?? ""
 
     return (<Box bg="pink.100" minH="100vh" py="12" px={{ base: "4", lg: "8" }}>
       <Box maxW="md" mx="auto">
@@ -23,7 +23,7 @@ import { useSearchParams } from "react-router-dom";
           <Text as="span">Set your new password</Text>
         </Text>
         <Card>
-          <ChangePasswordForm token={ token! }/>
+          <ChangePasswordForm token={ token }/>
         </Card>
       </Box>
     </Box>
