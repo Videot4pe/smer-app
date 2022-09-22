@@ -10,13 +10,16 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { JsonErrorResponse } from "utils/json-api-document";
 
 import AuthApi from "../../../api/auth-api";
 import { useErrorHandler } from "../../../utils/handle-get-error";
 import PasswordField from "./PasswordField";
 
-const ChangePasswordForm = (props: HTMLChakraProps<"form"> & { token: string }) => {
-  const [password, setPassword] = useState<string>("");
+type ChangePasswordFormProps = HTMLChakraProps<"form"> & { token: string }
+
+const ChangePasswordForm = (props: ChangePasswordFormProps) => {
+  const [password, setPassword] = useState("");
   const errorHandler = useErrorHandler();
   const navigate = useNavigate();
 
@@ -25,10 +28,26 @@ const ChangePasswordForm = (props: HTMLChakraProps<"form"> & { token: string }) 
       onSubmit={(e) => {
         e.preventDefault();
         AuthApi.changePassword(props.token, password)
-          .then(() => {
-            navigate('/signin', { replace: true });
-          })  
-          .catch(errorHandler);
+          .catch((e: JsonErrorResponse) => {
+            if (
+              e.statusText.toLowerCase().includes('token') 
+              || e.data.error.title.toLowerCase().includes('token')
+            ) {
+              const invalidTokenErr = {
+                status: 401,
+                statusText: 'Invalid token',
+                data: {
+                  error: {
+                    title: 'Please, try to reset email again',
+                  }
+                }
+              } as JsonErrorResponse
+              errorHandler(invalidTokenErr)
+            } else {
+              errorHandler(e)
+            }
+          })
+          .finally(() => navigate('/signin', { replace: true }));
       }}
       {...props}
     >

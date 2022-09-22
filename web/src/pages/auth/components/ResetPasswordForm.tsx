@@ -15,7 +15,7 @@ import { useSuccessHandler } from "../../../utils/handle-success";
 import { useErrorHandler } from "../../../utils/handle-get-error";
 
 const ResetPasswordForm = (props: HTMLChakraProps<"form">) => {
-  const [email, setEmail] = useState<string>('');
+  const [email, setEmail] = useState('');
   const errorHandler = useErrorHandler();
   const successHandler = useSuccessHandler('Link for changing password was sent');
 
