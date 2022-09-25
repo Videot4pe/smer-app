@@ -231,8 +231,6 @@ func (h *Handler) Activate(w http.ResponseWriter, r *http.Request, ps httprouter
 }
 
 func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var email string
-
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
@@ -241,9 +239,9 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 	}
 
 	// TODO проверить email на валидность - пока что, лишь бы не пустая строка
-	emailTrimmed := strings.TrimSpace(string(body))
-	if len(emailTrimmed) == 0 {
-		errorText := fmt.Sprintf("Invalid email: '%v'", emailTrimmed)
+	email := strings.TrimSpace(string(body))
+	if len(email) == 0 {
+		errorText := fmt.Sprintf("Invalid email: '%v'", email)
 		utils.WriteErrorResponse(w, http.StatusBadRequest, errorText)
 		return
 	}
@@ -268,7 +266,7 @@ func (h *Handler) PasswordReset(w http.ResponseWriter, r *http.Request, _ httpro
 		Password: cfg.Mailer.Password,
 	}
 	mailClient := mailer.GetMailer(sender, h.logger)
-	activationLink := fmt.Sprintf("%v:%v/change-password?token=%v", cfg.Frontend.ServerIP, cfg.Frontend.Port, token)
+	activationLink := fmt.Sprintf("%v/change-password?token=%v", cfg.Frontend.ServerIP, token)
 
 	mail := mailer.Mail{
 		Username: email,
