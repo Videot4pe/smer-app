@@ -31,6 +31,7 @@ export const getClient = (url: string) => {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
+
       if (error.response.status === 403 && !originalRequest.retry) {
         localStorage.removeItem("jwt-token");
         originalRequest.retry = true;
@@ -42,7 +43,7 @@ export const getClient = (url: string) => {
               localStorage.setItem("refresh-token", payload.refreshToken);
             })
             .catch(() => {
-              window.location.href = "localhost:3000/signin";
+              window.location.href = "/signin";
             });
           return client(originalRequest);
         }

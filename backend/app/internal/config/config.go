@@ -1,9 +1,12 @@
 package config
 
 import (
-	"github.com/ilyakaznacheev/cleanenv"
+	"backend/pkg/utils"
 	"log"
+	"path/filepath"
 	"sync"
+
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -14,7 +17,7 @@ type Config struct {
 		BindIP     string `env:"BIND_IP" env-default:"0.0.0.0"`
 		Port       string `env:"PORT" env-default:"5005"`
 		SocketFile string `env:"SOCKET_FILE" env-default:"app.sock"`
-		ServerIP   string `env:"SERVER_IP" env-default:"http://videot4pe.dev"`
+		ServerIP   string `env:"SERVER_IP" env-default:"https://videot4pe.dev"`
 	}
 	AppConfig struct {
 		LogLevel  string `env:"LOG_LEVEL" env-default:"trace"`
@@ -50,6 +53,10 @@ type Config struct {
 			CallbackUrl string `env:"VK_OAUTH_CALLBACK_URL" env-default:"http://localhost:5005/api/oauth/vk/callback"`
 		}
 	}
+	Frontend struct {
+		ServerIP string `env:"FRONTEND_SERVER_IP" env-default:"https://videot4pe.dev"`
+		Port     string `env:"FRONTEND_PORT" env-default:"3000"`
+	}
 }
 
 var instance *Config
@@ -59,8 +66,9 @@ func GetConfig() *Config {
 	once.Do(func() {
 		instance = &Config{}
 
-		// TODO fix path
-		if err := cleanenv.ReadConfig("../../.env", instance); err != nil {
+		path := filepath.Join(utils.RootDir(), ".env")
+
+		if err := cleanenv.ReadConfig(path, instance); err != nil {
 			var helpText string
 			help, _ := cleanenv.GetDescription(instance, &helpText)
 			log.Print(help)
