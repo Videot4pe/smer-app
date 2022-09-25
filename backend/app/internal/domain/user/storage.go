@@ -279,6 +279,9 @@ func (s *Storage) Activate(token string) error {
 }
 
 func (s *Storage) Delete(id uint16) error {
+	// TODO удалять 'остатки' пользователя
+	// в виде токенов и прочего
+
 	query := s.queryBuilder.Update(table).
 		Set("is_active", false).
 		Where(sq.Eq{"id": id})
